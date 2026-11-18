@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!-- Pretendard: 설치본 → jsDelivr CDN 순으로 시도. 둘 다 안 되면 문서의 대체 글꼴로 표시된다. -->
+<style data-pgpt-fonts>@font-face{font-family:"Pretendard";font-weight:400;font-display:swap;src:local("Pretendard Regular"),local("Pretendard Variable"),url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-Regular.woff2") format("woff2");}@font-face{font-family:"Pretendard";font-weight:500;font-display:swap;src:local("Pretendard Medium"),local("Pretendard Variable"),url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-Medium.woff2") format("woff2");}@font-face{font-family:"Pretendard";font-weight:600;font-display:swap;src:local("Pretendard SemiBold"),local("Pretendard Variable"),url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-SemiBold.woff2") format("woff2");}@font-face{font-family:"Pretendard";font-weight:700;font-display:swap;src:local("Pretendard Bold"),local("Pretendard Variable"),url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/static/woff2/Pretendard-Bold.woff2") format("woff2");}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>펌프 속도수두 계산기</title>
+<style>
+  :root{
+    --bg:#eef1f4;
+    --panel:#ffffff;
+    --ink:#1b2733;
+    --ink-2:#5d6b7a;
+    --line:#d4dbe2;
+    --accent:#0f6fb5;
+    --accent-bg:#e3eef7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    font-size:15px;
+    line-height:1.65;
+    padding:clamp(14px,3vw,36px);
+  }
+  .wrap{max-width:860px;margin:0 auto}
+
+  header{border-left:4px solid var(--accent);padding:2px 0 2px 16px;margin-bottom:22px}
+  header h1{font-size:clamp(20px,3.4vw,26px);margin:0;letter-spacing:-.02em}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:clamp(16px,2.6vw,24px);
+    margin-bottom:16px;
+  }
+  .card > h2{font-size:13px;letter-spacing:.04em;color:var(--ink-2);margin:0 0 16px;font-weight:600}
+
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px}
+  label span{font-weight:400;color:var(--ink-2)}
+  input[type=number],select{
+    width:100%;padding:10px 12px;font:inherit;
+    font-variant-numeric:tabular-nums;
+    border:1px solid var(--line);border-radius:4px;
+    background:#fbfcfd;color:var(--ink);
+  }
+  input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px;background:#fff}
+  .idhint{margin:6px 0 0;font-size:12.5px;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600}
+  .idhint.warn{color:#a4302a}
+  .tfield{margin-top:8px}
+  .tfield label{font-size:12.5px;margin-bottom:4px;font-weight:600;color:#a4302a}
+  .note{margin:14px 0 0;font-size:12.5px;color:var(--ink-2)}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  button{font:inherit;font-weight:600;cursor:pointer;padding:10px 18px;border-radius:4px;border:1px solid var(--accent)}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-ghost{background:transparent;color:var(--accent)}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .out{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .out div{border:1px solid var(--line);border-radius:5px;padding:12px 14px;text-align:right}
+  .out .lead{border-color:var(--accent);background:var(--accent-bg);grid-column:1 / -1}
+  .out dt{font-size:12.5px;color:var(--ink-2);margin:0}
+  .out dd{margin:4px 0 0;font-size:clamp(20px,3.6vw,26px);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .out dd small{font-size:13px;font-weight:500;color:var(--ink-2);margin-left:3px}
+  .out .lead dd{color:var(--accent)}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  thead th{font-size:12px;color:var(--ink-2);border-bottom:1px solid var(--ink-2)}
+  th.r,td.num{text-align:right}
+  td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  td.f{color:var(--ink-2);font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+  tr.hl td{background:var(--accent-bg);border-bottom-color:var(--accent)}
+  tr.hl td:first-child,tr.hl td.num{color:var(--accent);font-weight:700}
+  .err{color:#a4302a;font-size:13px;margin:12px 0 0;display:none}
+  .err.on{display:block}
+  footer{color:var(--ink-2);font-size:12.5px;margin-top:4px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>펌프 속도수두 계산기</h1>
+  </header>
+
+  <section class="card">
+    <h2>입력값</h2>
+
+    <div class="grid">
+      <div>
+        <label for="q">유량 Q <span>(m³/h)</span></label>
+        <input type="number" id="q" value="100" min="0" step="any" inputmode="decimal">
+      </div>
+      <div>
+        <label for="spec">배관 규격</label>
+        <select id="spec">
+          <option value="S40">KS D 3562 압력배관용 · Sch 40</option>
+          <option value="S80">KS D 3562 압력배관용 · Sch 80</option>
+          <option value="SPP">KS D 3507 일반배관용 (SPP)</option>
+          <option value="MAN" selected>직접 입력</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:14px">
+      <div class="dn">
+        <label for="ds">흡입 호칭경 <span>(정압 측정 위치)</span></label>
+        <select id="ds"></select>
+        <p class="idhint" id="ds-id"></p>
+        <div class="tfield hide" id="ts-wrap">
+          <label for="ts">흡입 공칭두께 t <span>(mm) · 직접 입력</span></label>
+          <input type="number" id="ts" min="0" step="any" inputmode="decimal" placeholder="PMS 두께">
+        </div>
+      </div>
+      <div class="dn">
+        <label for="dd">토출 호칭경 <span>(정압 측정 위치)</span></label>
+        <select id="dd"></select>
+        <p class="idhint" id="dd-id"></p>
+        <div class="tfield hide" id="td-wrap">
+          <label for="td">토출 공칭두께 t <span>(mm) · 직접 입력</span></label>
+          <input type="number" id="td" min="0" step="any" inputmode="decimal" placeholder="PMS 두께">
+        </div>
+      </div>
+      <div class="man hide">
+        <label for="dsm">흡입 배관 <span>(mm · 정압 측정 위치)</span></label>
+        <input type="number" id="dsm" value="151.0" min="0" step="any" inputmode="decimal">
+      </div>
+      <div class="man hide">
+        <label for="ddm">토출 배관 <span>(mm · 정압 측정 위치)</span></label>
+        <input type="number" id="ddm" value="102.3" min="0" step="any" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="controls">
+      <button type="button" class="btn-primary" id="calc">계산</button>
+      <button type="button" class="btn-ghost" id="reset">초기화</button>
+    </div>
+    <p class="err" id="err">유량·배관 내경(또는 두께)을 0보다 큰 값으로 입력하세요.</p>
+  </section>
+
+  <section class="card">
+    <h2>계산값</h2>
+    <dl class="out">
+      <div><dt>흡입속도수두</dt><dd id="r-hs">—<small>m</small></dd></div>
+      <div><dt>토출속도수두</dt><dd id="r-hd">—<small>m</small></dd></div>
+      <div class="lead"><dt>속도수두 차 (토출 − 흡입)</dt><dd id="r-dh">—<small>m</small></dd></div>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>계산과정</h2>
+    <table>
+      <thead>
+        <tr><th>항목</th><th>수식</th><th class="r">흡입</th><th class="r">토출</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>배관 호칭경 (mm)</td><td class="f">선택값</td><td class="num" id="t-nps">—</td><td class="num" id="t-npd">—</td></tr>
+        <tr><td>내경 (m)</td><td class="f">ID / 1000</td><td class="num" id="t-dms">—</td><td class="num" id="t-dmd">—</td></tr>
+        <tr><td>단면적 A (m²)</td><td class="f">π·(D/2)²</td><td class="num" id="t-as">—</td><td class="num" id="t-ad">—</td></tr>
+        <tr><td>유속 v (m/s)</td><td class="f">Q / A</td><td class="num" id="t-vs">—</td><td class="num" id="t-vd">—</td></tr>
+        <tr><td>속도수두 h (m)</td><td class="f">v² / (2g)</td><td class="num" id="t-hs">—</td><td class="num" id="t-hd">—</td></tr>
+        <tr class="hl"><td>속도수두 차 Δh (m)</td><td class="f">h<sub>d</sub> − h<sub>s</sub></td><td class="num" colspan="2" id="t-dh">—</td></tr>
+        <tr><td>유량 Q (m³/s)</td><td class="f">Q / 3600</td><td class="num" colspan="2" id="t-q">—</td></tr>
+        <tr><td>외경 OD (mm)</td><td class="f">KS 규격표</td><td class="num" id="t-ods">—</td><td class="num" id="t-odd">—</td></tr>
+        <tr><td>공칭두께 t (mm)</td><td class="f">KS 규격표</td><td class="num" id="t-ts">—</td><td class="num" id="t-td">—</td></tr>
+        <tr><td>내경 ID (mm)</td><td class="f">OD − 2t</td><td class="num" id="t-ids">—</td><td class="num" id="t-idd">—</td></tr>
+      </tbody>
+    </table>
+    <p class="note">g = 9.80665 m/s². 펌프 전양정 산정 시 정압 기준 양정에 속도수두 차를 더해 보정합니다.</p>
+  </section>
+
+  <footer>단위계: SI · 비압축성 유체, 만관(full pipe) 유동 가정</footer>
+</div>
+
+<script>
+(function(){
+  var G = 9.80665;
+
+  // 호칭경별 외경 OD (mm) — 50A~600A (그 이상은 내경 직접 입력)
+  var OD = {
+    50:60.5, 65:76.3, 80:89.1, 100:114.3, 125:139.8, 150:165.2, 200:216.3,
+    250:267.4, 300:318.5, 350:355.6, 400:406.4, 450:457.2, 500:508.0,
+    550:558.8, 600:609.6
+  };
+  // 공칭두께 t (mm) — 규격 정의 구간만 수록, 없으면 직접 입력
+  var T = {
+    S40:{50:3.9,65:5.2,80:5.5,100:6.0,125:6.6,150:7.1,200:8.2,250:9.3,
+         300:10.3,350:11.1,400:12.7,450:14.3,500:15.1,600:17.5},
+    S80:{50:5.5,65:7.0,80:7.6,100:8.6,125:9.5,150:11.0,200:12.7,250:15.1,
+         300:17.4,350:19.0,400:21.4,450:23.8,500:26.2,600:30.9},
+    SPP:{50:3.8,65:4.2,80:4.2,100:4.5,125:4.5,150:5.0,200:5.8,250:6.6,
+         300:6.9,350:7.9,400:7.9,450:7.9,500:7.9,550:9.5,600:9.5}
+  };
+  var SIZES = Object.keys(OD).map(Number).sort(function(a,b){ return a-b; });
+
+  var $ = function(id){ return document.getElementById(id); };
+  var spec = $('spec'), dsSel = $('ds'), ddSel = $('dd');
+
+  SIZES.forEach(function(n){
+    [dsSel, ddSel].forEach(function(sel){
+      var o = document.createElement('option');
+      o.value = n; o.textContent = n + 'A (DN' + n + ')';
+      sel.appendChild(o);
+    });
+  });
+  dsSel.value = 150; ddSel.value = 100;
+
+  function fmt(v,d){
+    if (v === null || v === undefined || !isFinite(v)) return '—';
+    return v.toLocaleString('ko-KR',{minimumFractionDigits:d, maximumFractionDigits:d});
+  }
+  function mode(){ return spec.value; }
+
+  function pipe(which){
+    if (mode() === 'MAN'){
+      var v = parseFloat(which === 's' ? $('dsm').value : $('ddm').value);
+      return {nps:null, od:null, t:null, id:v, needT:false};
+    }
+    var n = parseInt((which === 's' ? dsSel : ddSel).value, 10);
+    var od = OD[n];
+    var t = T[mode()][n];
+    if (t === undefined){
+      var mt = parseFloat((which === 's' ? $('ts') : $('td')).value);
+      return {nps:n, od:od, t:isFinite(mt) ? mt : null, id:isFinite(mt) ? od - 2*mt : NaN, needT:true};
+    }
+    return {nps:n, od:od, t:t, id:od - 2*t, needT:false};
+  }
+
+  function syncFields(){
+    var man = mode() === 'MAN';
+    [].forEach.call(document.querySelectorAll('.dn'), function(e){ e.classList.toggle('hide', man); });
+    [].forEach.call(document.querySelectorAll('.man'), function(e){ e.classList.toggle('hide', !man); });
+    if (man){ return; }
+
+    [['s', dsSel, 'ds-id', 'ts-wrap'], ['d', ddSel, 'dd-id', 'td-wrap']].forEach(function(a){
+      var p = pipe(a[0]);
+      $(a[3]).classList.toggle('hide', !p.needT);
+      var hint = $(a[2]);
+      if (p.needT && !(p.id > 0)){
+        hint.textContent = 'OD ' + fmt(p.od,1) + ' mm · 해당 호칭경은 규격 두께 미수록 → 두께 입력 필요';
+        hint.className = 'idhint warn';
+      } else {
+        hint.textContent = '내경 ' + fmt(p.id,1) + ' mm (OD ' + fmt(p.od,1) + ' − 2×' + fmt(p.t,1) + ')';
+        hint.className = 'idhint';
+      }
+    });
+  }
+
+  function clearOut(){
+    ['r-hs','r-hd','r-dh'].forEach(function(k){ $(k).innerHTML = '—<small>m</small>'; });
+    ['t-nps','t-npd','t-ods','t-odd','t-ts','t-td','t-ids','t-idd','t-dms','t-dmd',
+     't-as','t-ad','t-vs','t-vd','t-hs','t-hd','t-q','t-dh'].forEach(function(k){ $(k).textContent = '—'; });
+  }
+
+  function run(){
+    syncFields();
+    var q = parseFloat($('q').value);
+    var s = pipe('s'), d = pipe('d');
+
+    if (!(q >= 0) || !(s.id > 0) || !(d.id > 0)){
+      $('err').classList.add('on'); clearOut(); return;
+    }
+    $('err').classList.remove('on');
+
+    var qs = q / 3600;
+    var dsm = s.id/1000, ddm = d.id/1000;
+    var as = Math.PI * Math.pow(dsm/2, 2);
+    var ad = Math.PI * Math.pow(ddm/2, 2);
+    var vs = qs/as, vd = qs/ad;
+    var hs = vs*vs/(2*G), hd = vd*vd/(2*G);
+
+    $('r-hs').innerHTML = fmt(hs,4) + '<small>m</small>';
+    $('r-hd').innerHTML = fmt(hd,4) + '<small>m</small>';
+    $('r-dh').innerHTML = fmt(hd-hs,4) + '<small>m</small>';
+
+    $('t-nps').textContent = s.nps === null ? '직접 입력' : s.nps + 'A';
+    $('t-npd').textContent = d.nps === null ? '직접 입력' : d.nps + 'A';
+    $('t-ods').textContent = s.od === null ? '직접 입력' : fmt(s.od,1);
+    $('t-odd').textContent = d.od === null ? '직접 입력' : fmt(d.od,1);
+    $('t-ts').textContent  = fmt(s.t,1);
+    $('t-td').textContent  = fmt(d.t,1);
+    $('t-ids').textContent = fmt(s.id,1);
+    $('t-idd').textContent = fmt(d.id,1);
+    $('t-dms').textContent = fmt(dsm,4);
+    $('t-dmd').textContent = fmt(ddm,4);
+    $('t-as').textContent  = fmt(as,6);
+    $('t-ad').textContent  = fmt(ad,6);
+    $('t-vs').textContent  = fmt(vs,4);
+    $('t-vd').textContent  = fmt(vd,4);
+    $('t-hs').textContent  = fmt(hs,4);
+    $('t-hd').textContent  = fmt(hd,4);
+    $('t-q').textContent   = fmt(qs,5);
+    $('t-dh').textContent  = fmt(hd-hs,4);
+  }
+
+  ['q','dsm','ddm','ts','td'].forEach(function(id){
+    $(id).addEventListener('input', run);
+    $(id).addEventListener('keydown', function(e){ if (e.key === 'Enter') run(); });
+  });
+  [spec, dsSel, ddSel].forEach(function(s){ s.addEventListener('change', run); });
+  $('calc').addEventListener('click', run);
+  $('reset').addEventListener('click', function(){
+    $('q').value = 100; spec.value = 'MAN'; dsSel.value = 150; ddSel.value = 100;
+    $('ts').value = ''; $('td').value = '';
+    $('dsm').value = 151.0; $('ddm').value = 102.3;
+    run(); $('q').focus();
+  });
+
+  run();
+})();
+</script>
+</body>
+</html>
