@@ -95,10 +95,6 @@
 
     <div class="grid">
       <div>
-        <label for="q">유량 Q <span>(m³/h)</span></label>
-        <input type="number" id="q" value="" min="0" step="any" inputmode="decimal">
-      </div>
-      <div>
         <label for="spec">배관 규격</label>
         <select id="spec">
           <option value="MAN" selected>직접 입력</option>
@@ -106,6 +102,10 @@
           <option value="S80">KS D 3562 압력배관용 · Sch 80</option>
           <option value="SPP">KS D 3507 일반배관용 (SPP)</option>
         </select>
+      </div>
+      <div>
+        <label for="q">유량 Q <span>(m³/h)</span></label>
+        <input type="number" id="q" value="" min="0" step="any" inputmode="decimal" placeholder="0">
       </div>
     </div>
 
@@ -130,16 +130,16 @@
       </div>
       <div class="man hide">
         <label for="dsm">흡입 배관 <span>(mm · 정압 측정 위치)</span></label>
-        <input type="number" id="dsm" value="" min="0" step="any" inputmode="decimal">
+        <input type="number" id="dsm" value="" min="0" step="any" inputmode="decimal" placeholder="0">
       </div>
       <div class="man hide">
         <label for="ddm">토출 배관 <span>(mm · 정압 측정 위치)</span></label>
-        <input type="number" id="ddm" value="" min="0" step="any" inputmode="decimal">
+        <input type="number" id="ddm" value="" min="0" step="any" inputmode="decimal" placeholder="0">
       </div>
     </div>
 
     <div class="controls">
-      <button type="button" class="btn-primary" id="calc">계산</button>
+      <!-- <button type="button" class="btn-primary" id="calc">계산</button> -->
       <button type="button" class="btn-ghost" id="reset">초기화</button>
     </div>
     <p class="err" id="err">값을 0보다 큰 값으로 입력하세요.</p>
@@ -305,7 +305,7 @@
     $(id).addEventListener('keydown', function(e){ if (e.key === 'Enter') run(); });
   });
   [spec, dsSel, ddSel].forEach(function(s){ s.addEventListener('change', run); });
-  $('calc').addEventListener('click', run);
+  // $('calc').addEventListener('click', run);
   $('reset').addEventListener('click', function(){
     $('q').value = ''; spec.value = 'MAN'; dsSel.value = 150; ddSel.value = 100;
     $('ts').value = ''; $('td').value = '';
